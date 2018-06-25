@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context.xsd
+	http://www.springframework.org/schema/mvc
+	http://www.springframework.org/schema/mvc/spring-mvc.xsd
+	http://www.springframework.org/schema/tx
+	http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <mvc:annotation-driven/>
+    <tx:annotation-driven/>
+    <context:component-scan base-package="com.demo"/>
+
+    <bean id="xaDataSource1" class="com.mysql.cj.jdbc.MysqlXADataSource">
+        <property name="url" value="jdbc:mysql://localhost:3306/test"/>
+        <property name="user" value="root"/>
+        <property name="password" value=""/>
+    </bean>
+    <bean id="xaDataSource2" class="com.mysql.cj.jdbc.MysqlXADataSource">
+        <property name="url" value="jdbc:mysql://112.74.128.87:3306/qhxf_dbtest"/>
+        <property name="user" value=""/>
+        <property name="password" value=""/>
+    </bean>
+
+    <bean id="dataSource1" class="com.atomikos.jdbc.AtomikosDataSourceBean"
+          init-method="init" destroy-method="close">
+        <property name="uniqueResourceName" value="resource1"/>
+        <property name="xaDataSource" ref="xaDataSource1"/>
+        <property name="maxPoolSize" value="100"/>
+        <property name="borrowConnectionTimeout" value="30"/>
+        <property name="testQuery" value="select 1"/>
+        <property name="maintenanceInterval" value="60"/>
+    </bean>
+    <bean id="dataSource2" class="com.atomikos.jdbc.AtomikosDataSourceBean"
+          init-method="init" destroy-method="close">
+        <property name="uniqueResourceName" value="resource2"/>
+        <property name="xaDataSource" ref="xaDataSource2"/>
+        <property name="maxPoolSize" value="100"/>
+        <property name="borrowConnectionTimeout" value="30"/>
+        <property name="testQuery" value="select 1"/>
+        <property name="maintenanceInterval" value="60"/>
+    </bean>
+
+    <bean id="sqlSessionFactory1" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource1"/>
+        <property name="mapperLocations" value="classpath:mapper/one/*Mapper.xml"/>
+    </bean>
+    <bean id="sqlSessionFactory2" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource2"/>
+        <property name="mapperLocations" value="classpath:mapper/two/*Mapper.xml"/>
+    </bean>
+
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.demo.dao"/>
+        <property name="annotationClass" value="org.apache.ibatis.annotations.Mapper"/>
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory1"/>
+    </bean>
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.demo.dao"/>
+        <property name="annotationClass" value="org.apache.ibatis.annotations.Mapper"/>
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory2"/>
+    </bean>
+
+    <!-- atomitos事务管理器 -->
+    <bean id="atomitosTransactionManager"
+          init-method="init"
+          destroy-method="close"
+          class="com.atomikos.icatch.jta.UserTransactionManager">
+        <property name="forceShutdown" value="true"/>
+    </bean>
+    <!-- atomitos事务 -->
+    <bean id="atomikosTransaction" class="com.atomikos.icatch.jta.UserTransactionImp">
+        <property name="transactionTimeout" value="600"/>
+    </bean>
+    <!-- Spring JTA事务管理器 -->
+    <bean id="transactionManager" class="org.springframework.transaction.jta.JtaTransactionManager">
+        <property name="transactionManager" ref="atomitosTransactionManager"/>
+        <property name="userTransaction" ref="atomikosTransaction"/>
+        <property name="allowCustomIsolationLevels" value="true"/>
+        <property name="globalRollbackOnParticipationFailure" value="true"/>
+    </bean>
+
+    <!-- interceptor事务拦截器 -->
+    <bean id="transactionInterceptor"
+          class="org.springframework.transaction.interceptor.TransactionInterceptor">
+        <property name="transactionManager" ref="transactionManager" />
+        <property name="transactionAttributes">
+            <props>
+                <prop key="*">PROPAGATION_REQUIRED,-Exception</prop>
+            </props>
+        </property>
+    </bean>
+    <!-- proxy代理所有Mapper结尾的bean实例 -->
+    <bean class="org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator">
+        <property name="beanNames">
+            <list>
+                <value>*Mapper</value>
+            </list>
+        </property>
+        <property name="interceptorNames">
+            <list>
+                <value>transactionInterceptor</value>
+            </list>
+        </property>
+    </bean>
+
+</beans>
