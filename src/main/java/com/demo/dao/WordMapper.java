@@ -8,7 +8,7 @@ import java.util.List;
 @Mapper
 public interface WordMapper {
 
-     List<Word> findAll();
+     List<Word> queryAll();
 
-     int insert(Word word);
+     int add(Word word);
 }
