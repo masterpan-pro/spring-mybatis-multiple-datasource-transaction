@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.demo.dao.WordMapper">
+    <select id="findAll" resultType="com.demo.entity.Word">
+        select * from t_dict_sensitive_words
+    </select>
+    <insert id="insert" parameterType="com.demo.entity.Word">
+        insert into t_dict_sensitive_words (word) values (#{word})
+    </insert>
+</mapper>
