@@ -23,6 +23,7 @@ public class TestServiceImpl implements TestService {
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = {Exception.class})
     public int insert(User user, Word word) {
         int insert = userService.insert(user);
+//        int a = 10/0;
         int insert1 = wordService.insert(word);
         return insert + insert1;
     }
