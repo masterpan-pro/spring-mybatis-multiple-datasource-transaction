@@ -1,7 +1,7 @@
 package com.demo.service.impl;
 
-import com.demo.dao.UserMapper;
-import com.demo.dao.WordMapper;
+import com.demo.dao.user.UserMapper;
+import com.demo.dao.word.WordMapper;
 import com.demo.entity.User;
 import com.demo.entity.Word;
 import com.demo.service.UserService;
@@ -27,7 +27,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = { Exception.class })
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = {Exception.class})
     public int insert(User user) {
         wordMapper.add(new Word(null, "test"));
         return userMapper.insert(user);

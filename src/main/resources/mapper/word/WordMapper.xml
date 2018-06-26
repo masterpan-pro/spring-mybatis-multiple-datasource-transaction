@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.demo.dao.WordMapper">
+<mapper namespace="com.demo.dao.word.WordMapper">
     <select id="queryAll" resultType="com.demo.entity.Word">
         select * from t_dict_sensitive_words
     </select>

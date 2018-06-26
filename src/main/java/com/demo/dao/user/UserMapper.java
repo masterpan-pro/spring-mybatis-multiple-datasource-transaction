@@ -1,4 +1,4 @@
-package com.demo.dao;
+package com.demo.dao.user;
 
 import com.demo.entity.User;
 import org.apache.ibatis.annotations.Mapper;

@@ -14,43 +14,41 @@
 	http://www.springframework.org/schema/tx/spring-tx.xsd">
 
     <mvc:annotation-driven/>
-    <tx:annotation-driven/>
-    <context:component-scan base-package="com.demo"/>
-
-    <bean id="xaDataSource1" class="com.mysql.cj.jdbc.MysqlXADataSource">
-        <property name="url" value="jdbc:mysql://localhost:3306/test?useUnicode=true&amp;characterEncoding=UTF-8&amp;serverTimezone=UTC"/>
-        <property name="user" value="root"/>
-        <property name="password" value=""/>
-    </bean>
-    <bean id="xaDataSource2" class="com.mysql.cj.jdbc.MysqlXADataSource">
-        <property name="url" value="jdbc:mysql://112.74.128.87:3306/qhxf_dbtest?useUnicode=true&amp;characterEncoding=UTF-8&amp;serverTimezone=UTC"/>
-        <property name="user" value=""/>
-        <property name="password" value=""/>
-    </bean>
 
     <bean id="dataSource1" class="com.atomikos.jdbc.AtomikosDataSourceBean"
           init-method="init" destroy-method="close">
         <property name="uniqueResourceName" value="resource1"/>
-        <property name="xaDataSource" ref="xaDataSource1"/>
-        <property name="maxPoolSize" value="100"/>
-        <property name="borrowConnectionTimeout" value="30"/>
-        <property name="testQuery" value="select 1"/>
-        <property name="maintenanceInterval" value="60"/>
+        <property name="xaDataSourceClassName" value="com.mysql.jdbc.jdbc2.optional.MysqlXADataSource"/>
+        <property name="xaProperties">
+            <props>
+                <prop key="url">
+                    jdbc:mysql://127.0.0.1:3306/test?useUnicode=true&amp;characterEncoding=UTF-8&amp;serverTimezone=UTC
+                </prop>
+                <prop key="user">root</prop>
+                <prop key="password"></prop>
+            </props>
+        </property>
+        <property name="poolSize" value="10"/>
     </bean>
     <bean id="dataSource2" class="com.atomikos.jdbc.AtomikosDataSourceBean"
           init-method="init" destroy-method="close">
         <property name="uniqueResourceName" value="resource2"/>
-        <property name="xaDataSource" ref="xaDataSource2"/>
-        <property name="maxPoolSize" value="100"/>
-        <property name="borrowConnectionTimeout" value="30"/>
-        <property name="testQuery" value="select 1"/>
-        <property name="maintenanceInterval" value="60"/>
+        <property name="xaDataSourceClassName" value="com.mysql.jdbc.jdbc2.optional.MysqlXADataSource"/>
+        <property name="xaProperties">
+            <props>
+                <prop key="url">
+                    jdbc:mysql://112.74.128.87:3306/qhxf_dbtest?useUnicode=true&amp;characterEncoding=UTF-8&amp;serverTimezone=UTC
+                </prop>
+                <prop key="user"></prop>
+                <prop key="password"></prop>
+            </props>
+        </property>
+        <property name="poolSize" value="10"/>
     </bean>
 
     <bean id="sqlSessionFactory1" class="org.mybatis.spring.SqlSessionFactoryBean">
         <property name="dataSource" ref="dataSource1"/>
-        <property name="mapperLocations" value="classpath:mapper/*Mapper.xml"/>
-        <property name="typeAliasesPackage" value="com.demo.entity"/>
+        <property name="mapperLocations" value="classpath:mapper/user/*Mapper.xml"/>
         <property name="configuration">
             <bean class="org.apache.ibatis.session.Configuration">
                 <property name="mapUnderscoreToCamelCase" value="true"/>
@@ -59,8 +57,7 @@
     </bean>
     <bean id="sqlSessionFactory2" class="org.mybatis.spring.SqlSessionFactoryBean">
         <property name="dataSource" ref="dataSource2"/>
-        <property name="mapperLocations" value="classpath:mapper/*Mapper.xml"/>
-        <property name="typeAliasesPackage" value="com.demo.entity"/>
+        <property name="mapperLocations" value="classpath:mapper/word/*Mapper.xml"/>
         <property name="configuration">
             <bean class="org.apache.ibatis.session.Configuration">
                 <property name="mapUnderscoreToCamelCase" value="true"/>
@@ -69,12 +66,12 @@
     </bean>
 
     <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
-        <property name="basePackage" value="com.demo.dao"/>
+        <property name="basePackage" value="com.demo.dao.user"/>
         <property name="annotationClass" value="org.apache.ibatis.annotations.Mapper"/>
         <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory1"/>
     </bean>
     <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
-        <property name="basePackage" value="com.demo.dao"/>
+        <property name="basePackage" value="com.demo.dao.word"/>
         <property name="annotationClass" value="org.apache.ibatis.annotations.Mapper"/>
         <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory2"/>
     </bean>
@@ -101,7 +98,7 @@
     <!-- interceptor事务拦截器 -->
     <bean id="transactionInterceptor"
           class="org.springframework.transaction.interceptor.TransactionInterceptor">
-        <property name="transactionManager" ref="transactionManager" />
+        <property name="transactionManager" ref="transactionManager"/>
         <property name="transactionAttributes">
             <props>
                 <prop key="*">PROPAGATION_REQUIRED,-Exception</prop>
@@ -121,5 +118,10 @@
             </list>
         </property>
     </bean>
+
+    <tx:annotation-driven/>
+    <context:component-scan base-package="com.demo">
+        <context:include-filter type="annotation" expression="org.springframework.stereotype.Service"/>
+    </context:component-scan>
 
 </beans>
